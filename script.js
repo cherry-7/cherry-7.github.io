@@ -128,4 +128,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  /* ---------- scroll reveal: fade + rise content into view ----------
+     Covers the home page below the hero, every works page, and about.
+     Gracefully degrades: without IntersectionObserver, or with reduced
+     motion, everything just shows normally. */
+  (() => {
+    const selector = [
+      '.intro-strip-text > *',
+      '.intro-strip-selfie',
+      '.page-head > *',
+      '.page-divider',
+      '.block > *',
+      '.about-visuals > *',
+      '.about-copy-block'
+    ].join(',');
+
+    const els = Array.from(document.querySelectorAll(selector));
+    if (!els.length) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || !('IntersectionObserver' in window)) return;
+
+    document.documentElement.classList.add('reveal-ready');
+
+    // stagger siblings that share a parent so a row/grid ripples in
+    const groupCount = new Map();
+    els.forEach((el) => {
+      el.classList.add('reveal');
+      const parent = el.parentElement;
+      const i = groupCount.get(parent) || 0;
+      groupCount.set(parent, i + 1);
+      el.style.transitionDelay = Math.min(i * 70, 280) + 'ms';
+    });
+
+    // Huge top margin: anything from far above down to ~12% from the
+    // bottom counts as "intersecting". Elements below that line stay
+    // hidden until scrolled to; anything already scrolled past still
+    // gets caught on the next callback (a fast flick can't skip it).
+    const io = new IntersectionObserver((entries, obs) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        obs.unobserve(entry.target);
+      });
+    }, { rootMargin: '10000px 0px -12% 0px', threshold: 0 });
+
+    els.forEach((el) => io.observe(el));
+  })();
+
 });
