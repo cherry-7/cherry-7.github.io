@@ -650,6 +650,11 @@ section.block:last-of-type{ margin-bottom: 96px; }
   width: 260px;
   height: 320px;
 }
+.intro-selfie-frame img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .home-links{
   display: flex;
@@ -860,8 +865,8 @@ section.block:last-of-type{ margin-bottom: 96px; }
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 50px;
+  grid-template-columns: minmax(0, 360px) 1fr;
+  gap: 28px;
   align-items: start;
 }
 
@@ -871,21 +876,19 @@ section.block:last-of-type{ margin-bottom: 96px; }
   gap: 16px;
 }
 
+/* tall, narrow portrait frame — aspect ratio matches the photo's own
+   3:4 so object-fit: cover barely crops (shows the full, zoomed-out shot) */
 .about-hallo-frame{
-  height: 340px;
+  aspect-ratio: 3 / 4;
+  max-width: 360px;
+  margin-right: auto;
   position: relative;
 }
-
-.about-visuals-row{
-  display: grid;
-  grid-template-columns: 7fr 5fr;
-  gap: 16px;
-}
-
-.about-square-frame,
-.about-fill-frame{
-  height: 220px;
+.about-hallo-frame img{
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .about-copy-block{ margin-bottom: 46px; }
@@ -919,7 +922,6 @@ section.block:last-of-type{ margin-bottom: 96px; }
   .media-row{ flex-wrap: wrap; }
   .media-row > figure{ flex: 1 1 45%; }
   .about-grid{ grid-template-columns: 1fr; }
-  .about-visuals-row{ grid-template-columns: 1fr; }
   .footer-row{ flex-direction: column; align-items: flex-start; }
   .intro-strip{ flex-direction: column; align-items: stretch; gap: 32px; }
   .intro-strip::before{ width: 100%; top: auto; height: 60%; bottom: 0; }
