@@ -43,7 +43,7 @@
 
   --nav-h: 64px;
   --container: 1180px;
-  --radius: 2px;
+  --radius: 22px;
 
   --ease: cubic-bezier(.22,.61,.36,1);
 }
@@ -253,7 +253,7 @@ button{
   padding: 10px 14px;
   font-size: 13px;
   text-transform: lowercase;
-  border-radius: 1px;
+  border-radius: 14px;
 }
 .works-dropdown a:hover,
 .works-dropdown a:focus-visible{
@@ -755,6 +755,7 @@ section.block:last-of-type{ margin-bottom: 96px; }
   max-width: 20ch;
   font-weight: 400;
 }
+.text-pink{ color: var(--peach-pink); }
 
 /* selfie placeholder — pinned to the right edge of the band, with the
    resume button stacked directly beneath it */
@@ -1040,9 +1041,6 @@ section.block:last-of-type{ margin-bottom: 96px; }
   flex-direction: column;
   gap: 16px;
 }
-/* keep the button hugging its text instead of stretching to the
-   frame's width */
-.about-visuals .resume-btn{ align-self: flex-start; }
 
 /* tall, narrow portrait frame — aspect ratio matches the photo's own
    3:4 so object-fit: cover barely crops (shows the full, zoomed-out shot) */
@@ -1078,6 +1076,57 @@ section.block:last-of-type{ margin-bottom: 96px; }
 }
 .about-copy-block p:last-child{ margin-bottom: 0; }
 
+/* ---------- about: "I'd love to connect!" ---------- */
+.about-connect{
+  position: relative;
+  z-index: 1;
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.about-connect-mark{
+  width: clamp(130px, 18vw, 190px);
+  height: auto;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+.about-connect-body{ flex: 1 1 320px; }
+.about-connect-title{
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  margin-bottom: 22px;
+  color: var(--peach-pink);
+}
+.about-connect-row{
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px 26px;
+}
+.connect-item{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink);
+  opacity: 0.78;
+  transition: color 180ms var(--ease), opacity 180ms var(--ease);
+}
+.connect-item:hover,
+.connect-item:focus-visible{
+  color: var(--peach-pink);
+  opacity: 1;
+}
+.connect-item svg{
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
 /* ============================================================
    WORKS PAGES — scroll-past-the-edge page jump
    A floating arrow + label that grows in as you keep scrolling
@@ -1095,11 +1144,11 @@ section.block:last-of-type{ margin-bottom: 96px; }
   gap: 5px;
   padding: 12px 24px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.9);
+  background: #ffffff;
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.13);
+  border: 1px solid rgba(0,0,0,0.10);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.18);
   font-size: 11.5px;
   letter-spacing: 0.04em;
   text-transform: lowercase;
@@ -1120,7 +1169,7 @@ section.block:last-of-type{ margin-bottom: 96px; }
 
 .page-jump.is-visible{
   pointer-events: auto;
-  opacity: calc(0.4 + 0.6 * var(--p, 0));
+  opacity: calc(0.62 + 0.38 * var(--p, 0));
   transform: translateX(-50%) translateY(calc(var(--rest, 14px) * (1 - var(--p, 0))));
 }
 .page-jump-next.is-visible svg{ transform: scale(calc(1 + 0.2 * var(--p, 0))); }

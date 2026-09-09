@@ -140,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
       '.page-divider',
       '.block > *',
       '.about-visuals > *',
-      '.about-copy-block'
+      '.about-copy-block',
+      '.about-connect'
     ].join(',');
 
     const els = Array.from(document.querySelectorAll(selector));
@@ -165,15 +166,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // bottom counts as "intersecting". Elements below that line stay
     // hidden until scrolled to; anything already scrolled past still
     // gets caught on the next callback (a fast flick can't skip it).
-    const io = new IntersectionObserver((entries, obs) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-visible');
-        obs.unobserve(entry.target);
-      });
+    const reveal = (el) => {
+      el.classList.add('is-visible');
+      io.unobserve(el);
+    };
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) reveal(entry.target); });
     }, { rootMargin: '10000px 0px -12% 0px', threshold: 0 });
 
     els.forEach((el) => io.observe(el));
+
+    // Safety net: anything already within the real viewport (e.g. the last
+    // block on a short page that can never scroll past the -12% line) gets
+    // revealed on load and after settle, so content is never stuck hidden.
+    const sweep = () => {
+      els.forEach((el) => {
+        if (el.classList.contains('is-visible')) return;
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight && r.bottom > 0) reveal(el);
+      });
+    };
+    window.addEventListener('load', sweep);
+    setTimeout(sweep, 1200);
   })();
 
   /* ---------- works pages: overscroll at an edge → adjacent page ----------
@@ -212,10 +227,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevHint = make('prev', 'Previous page', links.prev);
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const THRESHOLD = reduce ? 90 : 240;
+    const isTouch = window.matchMedia('(hover: none)').matches;
+    // extra pull past the edge needed to auto-navigate — low on touch so a
+    // gentle nudge works, and the hint is a tappable link regardless.
+    const THRESHOLD = reduce ? 60 : isTouch ? 150 : 220;
+    const BASE_P = 0.62;   // how "shown" the hint is just from reaching the edge
 
-    let acc = 0;
-    let armed = null;      // 'next' | 'prev' | null
+    let pull = 0;          // overscroll accumulated past the current edge
+    let edge = null;       // 'next' | 'prev' | null — which edge we're resting at
     let engaged = false;   // reader has scrolled into the page at least once
     let firing = false;
     let decayTimer = null;
@@ -225,20 +244,24 @@ document.addEventListener('DOMContentLoaded', () => {
       window.innerHeight + window.scrollY >= docEl.scrollHeight - 4;
 
     const paint = () => {
-      const p = Math.min(Math.abs(acc) / THRESHOLD, 1);
-      const active = armed === 'next' ? nextHint : armed === 'prev' ? prevHint : null;
-      [nextHint, prevHint].forEach((h) => {
-        if (h === active && p > 0.02) {
+      [['next', nextHint], ['prev', prevHint]].forEach(([dir, h]) => {
+        if (dir === edge && !firing) {
+          const p = Math.min(BASE_P + Math.abs(pull) / THRESHOLD * (1 - BASE_P), 1);
           h.style.setProperty('--p', p.toFixed(3));
           h.classList.add('is-visible');
-        } else {
+        } else if (!h.classList.contains('is-firing')) {
           h.style.setProperty('--p', '0');
           h.classList.remove('is-visible');
         }
       });
     };
 
-    const reset = () => { acc = 0; armed = null; paint(); };
+    const setEdge = (e) => {
+      if (firing || e === edge) return;
+      edge = e;
+      pull = 0;
+      paint();
+    };
 
     const fire = (dir) => {
       if (firing) return;
@@ -249,25 +272,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 180);
     };
 
+    // count only pulls that push further past the edge we're resting at
     const feed = (dy) => {
-      if (firing || !dy) return;
-      const down = dy > 0;
-      if (down && atBottom()) {
-        if (armed !== 'next') acc = 0;
-        armed = 'next';
-        acc += dy;
-      } else if (!down && atTop() && engaged) {
-        if (armed !== 'prev') acc = 0;
-        armed = 'prev';
-        acc += dy; // negative
-      } else {
-        reset();
-        return;
+      if (firing || !dy || !edge) return;
+      if ((edge === 'next' && dy > 0) || (edge === 'prev' && dy < 0)) {
+        pull += Math.abs(dy);
+        paint();
+        clearTimeout(decayTimer);
+        decayTimer = setTimeout(() => { pull = 0; paint(); }, 700);
+        if (pull >= THRESHOLD) fire(edge);
       }
-      paint();
-      clearTimeout(decayTimer);
-      decayTimer = setTimeout(reset, 500);
-      if (Math.abs(acc) >= THRESHOLD) fire(armed);
     };
 
     window.addEventListener('wheel', (e) => {
@@ -283,12 +297,20 @@ document.addEventListener('DOMContentLoaded', () => {
       feed(ty - y);
       ty = y;
     }, { passive: true });
-    window.addEventListener('touchend', () => { ty = null; if (!firing) reset(); }, { passive: true });
+    window.addEventListener('touchend', () => { ty = null; }, { passive: true });
 
-    window.addEventListener('scroll', () => {
+    // The hint appears (and is tappable) the moment you reach an edge — no
+    // aggressive overscroll needed. `scroll` fires during momentum too, so
+    // it shows up on touch as soon as you land at the bottom / top.
+    const syncEdge = () => {
       if (window.scrollY > 120) engaged = true;
-      if (!firing && !atTop() && !atBottom()) reset();
-    }, { passive: true });
+      if (atBottom()) setEdge('next');
+      else if (atTop() && engaged) setEdge('prev');
+      else setEdge(null);
+    };
+    window.addEventListener('scroll', syncEdge, { passive: true });
+    window.addEventListener('resize', syncEdge, { passive: true });
+    syncEdge();
   })();
 
 });
