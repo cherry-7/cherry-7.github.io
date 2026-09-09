@@ -3,7 +3,28 @@
    Traditional Chinese peach-pink aesthetic
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap');
+/* ---------- self-hosted fonts ---------- */
+@font-face{
+  font-family: "Comfortaa";
+  src: url("fonts/Comfortaa-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face{
+  font-family: "Comfortaa";
+  src: url("fonts/Comfortaa-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face{
+  font-family: "DR Exclusive Editorial";
+  src: url("fonts/DRExclusiveEditorial.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root{
   --peach-pink: #e96aa3;
@@ -17,8 +38,8 @@
   --cyan-dim: rgba(97,176,173,0.14);
   --green-dim: rgba(175,221,34,0.18);
 
-  --font-display: "Fraunces", "Iowan Old Style", serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "DR Exclusive Editorial", "Comfortaa", Georgia, serif;
+  --font-body: "Comfortaa", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   --nav-h: 64px;
   --container: 1180px;
@@ -70,13 +91,20 @@ body{
 
 h1, h2, h3, h4{
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
   margin: 0;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
+  line-height: 1.12;
+  letter-spacing: 0;
 }
 
 p{ margin: 0; max-width: 62ch; }
+
+/* bolded key points inside body copy — Comfortaa Bold, full-strength ink
+   so they read clearly against the dimmed paragraph text */
+p strong, p b{
+  font-weight: 700;
+  color: var(--ink);
+}
 
 a{ color: inherit; text-decoration: none; }
 
@@ -306,8 +334,14 @@ button{
    PAGE HEADER (shared across works/about pages)
    ============================================================ */
 
-.page-head{
-  padding: calc(var(--nav-h) + 64px) 0 40px;
+/* Vertical spacing only — the left/right gutter comes from .container.
+   The doubled `.page-head.container` selector outweighs the .container
+   padding rule inside the responsive media queries, so the title always
+   clears the fixed nav (previously it slid underneath on phones). */
+.page-head,
+.page-head.container{
+  padding-top: calc(var(--nav-h) + 64px);
+  padding-bottom: 40px;
 }
 
 .page-head .page-kicker{
@@ -351,7 +385,7 @@ section.block:last-of-type{ margin-bottom: 96px; }
 .block-copy{
   font-size: 14.5px;
   line-height: 1.65;
-  opacity: 0.72;
+  color: rgba(0,0,0,0.72);
   max-width: 62ch;
   margin: -8px 0 26px;
 }
@@ -505,9 +539,14 @@ section.block:last-of-type{ margin-bottom: 96px; }
   position: relative;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: clamp(26px, 5vh, 48px);
   padding-top: var(--nav-h);
+  /* leave room at the bottom for the scroll cue so the centered
+     mascot / logo / CTA stack never collides with it */
+  padding-bottom: clamp(96px, 15vh, 150px);
   overflow: hidden;
   background: var(--bg);
   --mx: 50%;
@@ -618,6 +657,41 @@ section.block:last-of-type{ margin-bottom: 96px; }
   50%{ transform: translateY(-14px) rotate(-1.5deg); }
 }
 
+/* hero call-to-action — a white pill under the mascot + logo with the
+   label always drawn as a palette gradient (the text lives in its own
+   <span> so the white box fill and the gradient text-clip don't compete
+   for the single background). On hover it lifts with a soft shadow. */
+.hero-cta{
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 32px;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+  color: transparent;
+  transition: box-shadow 240ms var(--ease), transform 240ms var(--ease);
+}
+.hero-cta span{
+  display: inline-block;
+  background-image: linear-gradient(90deg,
+    var(--peach-pink), var(--cyan) 50%, var(--light-green));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.hero-cta:hover,
+.hero-cta:focus-visible{
+  box-shadow: 0 16px 38px rgba(0,0,0,0.16);
+  transform: translateY(-2px);
+}
+
 .hero-scroll-cue{
   position: absolute;
   bottom: 34px; left: 50%;
@@ -702,8 +776,8 @@ section.block:last-of-type{ margin-bottom: 96px; }
   object-fit: cover;
 }
 
-/* download-resume button — solid peach pill with a download glyph,
-   used on the home intro strip and the about page */
+/* CV button — a pill with a download glyph. Solid peach by default
+   (about page); white with peach text on the home intro strip. */
 .resume-btn{
   display: inline-flex;
   align-items: center;
@@ -724,6 +798,18 @@ section.block:last-of-type{ margin-bottom: 96px; }
   box-shadow: 0 10px 22px rgba(233,106,163,0.28);
 }
 .resume-btn svg{ width: 15px; height: 15px; }
+.resume-btn svg path{ stroke: currentColor; }
+
+/* home intro strip: white fill, peach label + icon */
+.intro-strip-selfie .resume-btn{
+  background: #ffffff;
+  border-color: rgba(0,0,0,0.10);
+  color: var(--peach-pink);
+}
+.intro-strip-selfie .resume-btn:hover,
+.intro-strip-selfie .resume-btn:focus-visible{
+  box-shadow: 0 10px 24px rgba(0,0,0,0.13);
+}
 
 .home-links{
   display: flex;
@@ -732,18 +818,20 @@ section.block:last-of-type{ margin-bottom: 96px; }
   flex-wrap: wrap;
 }
 .home-link-card{
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid var(--peach-pink);
   border-radius: var(--radius);
-  padding: 16px 20px;
+  padding: 16px 22px;
   font-size: 13.5px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  transition: border-color 200ms var(--ease), transform 200ms var(--ease);
+  background: var(--peach-pink);
+  color: #fff;
+  transition: background 200ms var(--ease), box-shadow 200ms var(--ease), transform 200ms var(--ease);
 }
 .home-link-card:hover, .home-link-card:focus-visible{
-  border-color: var(--peach-pink);
   transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(233,106,163,0.30);
 }
 .home-link-card .dot{
   width: 7px; height: 7px; border-radius: 50%;
@@ -904,30 +992,38 @@ section.block:last-of-type{ margin-bottom: 96px; }
   overflow: hidden;
 }
 
-/* floating gradient blob, bottom-right corner — same palette as the
-   homepage hero wash, drifting gently instead of tracking the cursor */
+/* floating gradient blob, tucked into the bottom-right corner — same
+   palette as the homepage hero wash, drifting gently instead of tracking
+   the cursor. Sized in vw so it stays a corner accent on narrow screens
+   instead of washing across the page, and the radial is centred toward
+   the corner so the colour fades out well before it reaches the content. */
 .about-blob{
   position: absolute;
-  right: -80px;
-  bottom: -80px;
-  width: 320px;
-  height: 320px;
+  right: -50px;
+  bottom: -50px;
+  width: min(300px, 44vw);
+  height: min(300px, 44vw);
   z-index: 0;
   pointer-events: none;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 40% 35%,
-      rgba(233,106,163,0.55) 0%,
-      rgba(97,176,173,0.42) 40%,
-      rgba(175,221,34,0.34) 68%,
-      rgba(255,255,255,0) 82%);
-  filter: blur(34px) saturate(115%);
+    radial-gradient(circle at 64% 66%,
+      rgba(233,106,163,0.5) 0%,
+      rgba(97,176,173,0.4) 30%,
+      rgba(175,221,34,0.3) 48%,
+      rgba(255,255,255,0) 66%);
+  filter: blur(30px) saturate(115%);
   animation: blobFloat 9s ease-in-out infinite;
 }
 
 @keyframes blobFloat{
   0%, 100%{ transform: translate(0, 0); }
-  50%{ transform: translate(-14px, -22px); }
+  50%{ transform: translate(-12px, -18px); }
+}
+
+/* on phones even a corner accent dominates — drop it */
+@media (max-width: 620px){
+  .about-blob{ display: none; }
 }
 
 .about-grid{
@@ -976,11 +1072,64 @@ section.block:last-of-type{ margin-bottom: 96px; }
 }
 .about-copy-block p{
   font-size: 15px;
-  opacity: 0.72;
+  color: rgba(0,0,0,0.72);
   margin-bottom: 12px;
   max-width: 52ch;
 }
 .about-copy-block p:last-child{ margin-bottom: 0; }
+
+/* ============================================================
+   WORKS PAGES — scroll-past-the-edge page jump
+   A floating arrow + label that grows in as you keep scrolling
+   past the top or bottom of a works page; pushing far enough
+   navigates to the previous / next works page. JS sets --p (0–1).
+   ============================================================ */
+
+.page-jump{
+  position: fixed;
+  left: 50%;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.13);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(var(--rest, 14px));
+  transition: opacity 220ms var(--ease), transform 220ms var(--ease);
+}
+.page-jump-next{ bottom: 20px; --rest: 16px; }
+.page-jump-prev{ top: calc(var(--nav-h) + 12px); --rest: -16px; }
+
+.page-jump svg{
+  width: 22px; height: 22px;
+  transition: transform 220ms var(--ease);
+}
+.page-jump-prev svg{ transform: rotate(180deg); }
+
+.page-jump.is-visible{
+  pointer-events: auto;
+  opacity: calc(0.4 + 0.6 * var(--p, 0));
+  transform: translateX(-50%) translateY(calc(var(--rest, 14px) * (1 - var(--p, 0))));
+}
+.page-jump-next.is-visible svg{ transform: scale(calc(1 + 0.2 * var(--p, 0))); }
+.page-jump-prev.is-visible svg{ transform: rotate(180deg) scale(calc(1 + 0.2 * var(--p, 0))); }
+
+.page-jump.is-firing{
+  opacity: 1;
+  transform: translateX(-50%) scale(1.06);
+}
 
 /* ============================================================
    RESPONSIVE

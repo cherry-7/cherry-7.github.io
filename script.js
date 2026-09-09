@@ -176,4 +176,119 @@ document.addEventListener('DOMContentLoaded', () => {
     els.forEach((el) => io.observe(el));
   })();
 
+  /* ---------- works pages: overscroll at an edge → adjacent page ----------
+     When you're already at the very bottom and keep scrolling down, a
+     hint ("onto next page") grows in; push far enough and it navigates
+     to the next works page. Same at the top for "previous page".
+     Works for wheel and touch; the hint is also a plain link you can
+     click. Loops civic → design → dev → civic. */
+  (() => {
+    const order = {
+      'works-civic.html':  { prev: 'works-dev.html',    next: 'works-design.html' },
+      'works-design.html': { prev: 'works-civic.html',  next: 'works-dev.html' },
+      'works-dev.html':    { prev: 'works-design.html', next: 'works-civic.html' }
+    };
+    const links = order[path];
+    if (!links) return;
+
+    const docEl = document.documentElement;
+    if (docEl.scrollHeight <= window.innerHeight + 40) return; // page doesn't scroll
+
+    const arrow =
+      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<path d="M12 5v14M5 13l7 7 7-7" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    const make = (dir, label, href) => {
+      const a = document.createElement('a');
+      a.className = 'page-jump page-jump-' + dir;
+      a.href = href;
+      a.setAttribute('aria-label', label);
+      a.innerHTML = arrow + '<span>' + label.toLowerCase() + '</span>';
+      document.body.appendChild(a);
+      return a;
+    };
+    const nextHint = make('next', 'Onto next page', links.next);
+    const prevHint = make('prev', 'Previous page', links.prev);
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const THRESHOLD = reduce ? 90 : 240;
+
+    let acc = 0;
+    let armed = null;      // 'next' | 'prev' | null
+    let engaged = false;   // reader has scrolled into the page at least once
+    let firing = false;
+    let decayTimer = null;
+
+    const atTop = () => window.scrollY <= 4;
+    const atBottom = () =>
+      window.innerHeight + window.scrollY >= docEl.scrollHeight - 4;
+
+    const paint = () => {
+      const p = Math.min(Math.abs(acc) / THRESHOLD, 1);
+      const active = armed === 'next' ? nextHint : armed === 'prev' ? prevHint : null;
+      [nextHint, prevHint].forEach((h) => {
+        if (h === active && p > 0.02) {
+          h.style.setProperty('--p', p.toFixed(3));
+          h.classList.add('is-visible');
+        } else {
+          h.style.setProperty('--p', '0');
+          h.classList.remove('is-visible');
+        }
+      });
+    };
+
+    const reset = () => { acc = 0; armed = null; paint(); };
+
+    const fire = (dir) => {
+      if (firing) return;
+      firing = true;
+      (dir === 'next' ? nextHint : prevHint).classList.add('is-firing');
+      setTimeout(() => {
+        window.location.href = dir === 'next' ? links.next : links.prev;
+      }, 180);
+    };
+
+    const feed = (dy) => {
+      if (firing || !dy) return;
+      const down = dy > 0;
+      if (down && atBottom()) {
+        if (armed !== 'next') acc = 0;
+        armed = 'next';
+        acc += dy;
+      } else if (!down && atTop() && engaged) {
+        if (armed !== 'prev') acc = 0;
+        armed = 'prev';
+        acc += dy; // negative
+      } else {
+        reset();
+        return;
+      }
+      paint();
+      clearTimeout(decayTimer);
+      decayTimer = setTimeout(reset, 500);
+      if (Math.abs(acc) >= THRESHOLD) fire(armed);
+    };
+
+    window.addEventListener('wheel', (e) => {
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;
+      feed(e.deltaY * unit);
+    }, { passive: true });
+
+    let ty = null;
+    window.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+      if (ty === null) return;
+      const y = e.touches[0].clientY;
+      feed(ty - y);
+      ty = y;
+    }, { passive: true });
+    window.addEventListener('touchend', () => { ty = null; if (!firing) reset(); }, { passive: true });
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 120) engaged = true;
+      if (!firing && !atTop() && !atBottom()) reset();
+    }, { passive: true });
+  })();
+
 });
