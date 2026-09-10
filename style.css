@@ -50,7 +50,7 @@
 
 *, *::before, *::after{ box-sizing: border-box; }
 
-html{ scroll-behavior: smooth; }
+html{ scroll-behavior: smooth; overflow-x: clip; }
 
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior: auto; }
@@ -572,8 +572,10 @@ section.block:last-of-type{ margin-bottom: 96px; }
   filter: blur(38px) saturate(115%);
 }
 
-/* Watercolor wash: a soft radial bloom that follows the cursor, blooming
-   in on hover and softly fading back down to the ambient base wash on
+/* Watercolor wash: on hover the centre around the cursor stays a soft,
+   low-strength pink — so the mascot / logo don't get washed over — that
+   blends up through the same palette into the fuller colours toward the
+   hero's borders. Tracks the cursor; fades in on mouse-over, back out on
    mouse-leave. */
 .watercolor-wash{
   position: absolute;
@@ -584,10 +586,11 @@ section.block:last-of-type{ margin-bottom: 96px; }
   transition: opacity 700ms var(--ease);
   background:
     radial-gradient(circle at var(--mx) var(--my),
-      rgba(233,106,163,0.55) 0%,
-      rgba(97,176,173,0.4) 28%,
-      rgba(175,221,34,0.32) 50%,
-      rgba(255,255,255,0) 72%);
+      rgba(233,106,163,0.15) 0%,
+      rgba(233,106,163,0.22) 12%,
+      rgba(175,221,34,0.32) 34%,
+      rgba(97,176,173,0.42) 58%,
+      rgba(233,106,163,0.55) 92%);
   filter: blur(38px) saturate(115%);
   will-change: opacity, background;
 }
@@ -717,31 +720,31 @@ section.block:last-of-type{ margin-bottom: 96px; }
   align-items: center;
   justify-content: space-between;
   gap: 48px;
-  /* clip ONLY the top edge to the band (negative insets leave the other
-     three sides unclipped) so the gradient blob can't bleed up into the
-     hero, but also never gets a hard vertical cut on the right */
+  /* only the top is clipped (so the glow can't bleed up into the hero);
+     the gradient runs freely out to the browser-window edge. The
+     horizontal scrollbar it would otherwise cause is caught by
+     `overflow-x: clip` on <html>. */
   clip-path: inset(0 -100vw -100vw -100vw);
 }
 
-/* soft hero-toned gradient sitting behind the selfie, on the right side
-   of the band. Its box runs well past the right edge of the page so the
-   glow only ever fades out — it never meets a boundary in view. */
+/* soft hero-toned gradient that carries on behind the selfie and past it,
+   fading out only as it reaches the browser-window edge — so there's no
+   hard cut anywhere, least of all at the edge of the photo. */
 .intro-strip::before{
   content: "";
   position: absolute;
   top: 0;
-  right: -30vw;
+  right: calc(50% - 50vw);   /* right edge sits at the window's right edge */
   bottom: -40px;
-  width: 760px;
-  max-width: 90vw;
+  width: min(760px, 82vw);
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 45%,
+    radial-gradient(circle at 52% 45%,
       rgba(233,106,163,0.34) 0%,
-      rgba(97,176,173,0.26) 34%,
-      rgba(175,221,34,0.2) 54%,
-      rgba(255,255,255,0) 72%);
+      rgba(97,176,173,0.26) 36%,
+      rgba(175,221,34,0.2) 58%,
+      rgba(255,255,255,0) 88%);
   filter: blur(34px) saturate(115%);
 }
 
@@ -1144,11 +1147,11 @@ section.block:last-of-type{ margin-bottom: 96px; }
   gap: 5px;
   padding: 12px 24px;
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--peach-pink-soft);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
   backdrop-filter: blur(12px) saturate(140%);
   border: 1px solid rgba(0,0,0,0.10);
-  box-shadow: 0 14px 34px rgba(0,0,0,0.18);
+  box-shadow: 0 14px 34px rgba(233,106,163,0.28);
   font-size: 11.5px;
   letter-spacing: 0.04em;
   text-transform: lowercase;
